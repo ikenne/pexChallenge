@@ -29,25 +29,10 @@ func main() {
 	flag.Parse()
 
 	fp := newFileParser()
-	/*
-		urls, err := fp.readInputFile(filePath)
-		if err != nil {
-			fmt.Printf("Error loading input %v", err)
-			return
-		}
 
-		ip := new(processor)
-		ir, err := ip.processURLs(urls)
-		if err != nil {
-			fmt.Printf("error processing image urls %v", err)
-		}
-		writeToFile(ir)
-	*/
-
-	fmt.Println("partition size", partitionSize)
 	partitions, err := fp.partitionInputFile(filePath, partitionSize)
 	if err != nil {
-		fmt.Printf("Error partitioning input %v", err)
+		fmt.Printf("Error partitioning input file: %v", err)
 		return
 	}
 
@@ -96,12 +81,13 @@ func main() {
 	createWorkers(numOfWorkers, fp, ip)
 
 	<-done
+
+	removePartitionFiles(partitions)
 	fmt.Println("Finished processing")
 }
 
 // writeToFile outputs the result to a file
 func writeToFile(ir []imageResult) error {
-	// file, err := os.Create(outputFile)
 	file, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -126,6 +112,16 @@ func writeResults(done chan bool) {
 	done <- true
 }
 
+// remove temp partition files
+func removePartitionFiles(partitions []string) {
+	for _, f := range partitions {
+		err := os.Remove(f)
+		if err != nil {
+			fmt.Printf("Error removing file %s: %v", f, err)
+		}
+	}
+}
+
 // adds a job (partition file) to the buffered jobs channel
 func allocateJobs(partitions []string) {
 	for _, p := range partitions {
@@ -148,6 +144,7 @@ func createWorkers(num int, fp *fileParser, ip *processor) {
 
 // the worker - processes the partition (job) and puts output in results channel
 func worker(wg *sync.WaitGroup, fp *fileParser, ip *processor) {
+	defer wg.Done()
 	for job := range jobs {
 		urls, err := fp.readInputFile(job)
 		if err != nil {
@@ -164,5 +161,5 @@ func worker(wg *sync.WaitGroup, fp *fileParser, ip *processor) {
 		results <- ir
 	}
 
-	wg.Done()
+	// wg.Done()
 }
