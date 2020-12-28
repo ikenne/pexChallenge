@@ -17,7 +17,7 @@ The input file is specified with parameter `inputFile` (default  `input.txt`).
 
 The built executable is run as:
 ```
-pexChallenge -inputFile='input.txt' -pSize=200 -workers=5
+pexChallenge -inputFile='input.txt' -pSize=200 -workers=3
 ```
 
 ## Memory Usage

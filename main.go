@@ -83,6 +83,7 @@ func main() {
 	<-done
 
 	removePartitionFiles(partitions)
+
 	fmt.Println("Finished processing")
 }
 
@@ -145,6 +146,7 @@ func createWorkers(num int, fp *fileParser, ip *processor) {
 // the worker - processes the partition (job) and puts output in results channel
 func worker(wg *sync.WaitGroup, fp *fileParser, ip *processor) {
 	defer wg.Done()
+
 	for job := range jobs {
 		urls, err := fp.readInputFile(job)
 		if err != nil {
@@ -154,12 +156,10 @@ func worker(wg *sync.WaitGroup, fp *fileParser, ip *processor) {
 
 		ir, err := ip.processURLs(urls)
 		if err != nil {
-			fmt.Printf("error processing image urls %v", err)
+			fmt.Printf("error processing image urls from %s: %v", job, err)
 			return
 		}
 
 		results <- ir
 	}
-
-	// wg.Done()
 }
