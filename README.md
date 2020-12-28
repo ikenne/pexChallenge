@@ -9,7 +9,7 @@ Answer should be posted in a git repo.
 
 ## Approach
 
-The URLs in the input file are batched to allow manageable processing with limited resources. The batch size - number of urls in a batch size should be configurable. Each batch is saved in a temporary file as `<input file name>_p{n}.txt`, where `n` is 1,2,3 ... N, e.g. `input_p1.txt`. The temporary partition files are removed after processing. The size of the batch (default 100) is passed as an argument to the program: `--pSize=200`
+The URLs in the input file are batched to allow manageable processing with limited resources. The batch size - number of urls in a batch - should be configurable. Each batch is saved in a temporary partition file as `<input file name>_p{n}.txt`, where `n` is 1,2,3, ... N, e.g., `input_p1.txt`. The partition files are removed after processing. The size of the batch is passed as an argument to the program: e.g.,`--pSize=200` (default 100).
 
 Concurrent processing of the batches is also supported to improve speed. The concurrency is achieved with worker goroutines that process the partition files. The number of workers is configurable with a program parameter: e.g., `--workers=3` (default 2).
 
