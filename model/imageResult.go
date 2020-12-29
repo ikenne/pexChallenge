@@ -1,21 +1,21 @@
-package main
+package model
 
 import (
 	"fmt"
 )
 
-type rgb [3]byte
+type RGB [3]byte
 
-type imageResult struct {
+type ImageResult struct {
 	URL string
 	// Colors []string
-	Colors [3]rgb
-	errMsg string
+	Colors [3]RGB
+	ErrMsg string
 }
 
-func (ir imageResult) String() string {
-	if len(ir.errMsg) > 0 {
-		return fmt.Sprintf("%s,%s\n", ir.URL, ir.errMsg)
+func (ir ImageResult) String() string {
+	if len(ir.ErrMsg) > 0 {
+		return fmt.Sprintf("%s,%s\n", ir.URL, ir.ErrMsg)
 	}
 
 	// colors := strings.Join(ir.Colors, ",")

@@ -3,28 +3,36 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"image"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
+	"pexChallenge/model"
 	"strings"
+
+	"github.com/EdlinOrg/prominentcolor"
 )
 
 const (
 	delimiter = '\n'
 )
 
-// ensure interface compliance
-// var _ parser.PayloadParser = (*FileParser)(nil)
+// var _ UrlProcessor = (*fileParser)(nil)
+var _ UrlProcessor = (*processor)(nil)
 
-type fileParser struct {
+type fileProcessor struct {
+	UrlProcessor
 }
 
-func newFileParser() *fileParser {
-	return new(fileParser)
+func newFileProcessor() *fileProcessor {
+	return &fileProcessor{
+		UrlProcessor: new(processor),
+	}
 }
 
 // readInputFile parses the input file
-func (fp *fileParser) readInputFile(filePath string) ([]string, error) {
+func (fp *fileProcessor) readInputFile(filePath string) ([]string, error) {
 	file, err := os.Open(filePath)
 	defer file.Close()
 
@@ -59,7 +67,8 @@ func (fp *fileParser) readInputFile(filePath string) ([]string, error) {
 	fmt.Println("number of lines parsed ", len(lines))
 	return lines, nil
 }
-func (fp *fileParser) partitionInputFile(inputFile string, maxLines int) ([]string, error) {
+
+func (fp *fileProcessor) partitionInputFile(inputFile string, maxLines int) ([]string, error) {
 	file, err := os.Open(inputFile)
 	if err != nil {
 		return nil, err
@@ -137,6 +146,69 @@ func (fp *fileParser) partitionInputFile(inputFile string, maxLines int) ([]stri
 		pFile.Close()
 	}
 
-	fmt.Println("number of lines parsed ", lineCnt)
+	fmt.Println("total number of lines parsed ", lineCnt)
 	return partitionFiles, nil
+}
+
+type processor struct {
+}
+
+// processURLs processes the input URLs
+func (p processor) ProcessURLs(urls []string) ([]model.ImageResult, error) {
+	result := make([]model.ImageResult, 0)
+	for _, url := range urls {
+		r, err := p.Process(url)
+		if err != nil {
+			// return nil, err
+		}
+		result = append(result, *r)
+	}
+
+	return result, nil
+}
+
+// process - gets the prominent colours from the URL
+func (p processor) Process(url string) (*model.ImageResult, error) {
+
+	r := new(model.ImageResult)
+	r.URL = url
+
+	resp, err := http.Get(url)
+	if err != nil {
+		r.ErrMsg = err.Error()
+		return r, err
+	}
+	defer resp.Body.Close()
+
+	img, format, err := image.Decode(resp.Body)
+	if err != nil {
+		fmt.Printf("Failed to process image, url %s "+
+			"format %s: %v\n", url, format, err)
+		r.ErrMsg = err.Error()
+		return r, err
+	}
+
+	colours, err := prominentcolor.Kmeans(img)
+	if err != nil {
+		fmt.Println("Failed to process image", err)
+		r.ErrMsg = err.Error()
+		return r, err
+	}
+
+	// fmt.Println("Dominant colours:")
+	// r.Colors = make([]string, 0)
+	// for _, c := range colours {
+	// 	fmt.Println("#" + c.AsString())
+	// 	r.Colors = append(r.Colors, "#"+c.AsString())
+	// }
+
+	r.Colors = [3]model.RGB{}
+	for i := 0; i < 3; i++ {
+		c := colours[i]
+		r.Colors[i][0] = byte(c.Color.R)
+		r.Colors[i][1] = byte(c.Color.G)
+		r.Colors[i][2] = byte(c.Color.B)
+	}
+
+	return r, nil
 }

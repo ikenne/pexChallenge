@@ -20,6 +20,8 @@ The built executable is run as:
 pexChallenge -inputFile='input.txt' -pSize=200 -workers=3
 ```
 
+The CSV output is saved as `output.txt`
+
 ## Memory Usage
 The internal result of the processing is stored in type `imageResult`. It has a `Colors` field which is an array of size 3 (for the three most prevalent colors of the URL). Each element is a 3 byte/unsigned 8 bit array for the R, G, B components of the color. A total of 9 bytes each used for the result of each URL.
 

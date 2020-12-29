@@ -4,11 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"pexChallenge/model"
 	"sync"
 )
 
 const (
-	outputFile           = "myOutput.txt"
+	outputFile           = "output.txt"
 	defaultPartitionSize = 100
 	defaultNumOfWorkers  = 2
 )
@@ -17,7 +18,7 @@ var (
 	filePath      string
 	partitionSize int
 	numOfWorkers  int
-	results       chan []imageResult
+	results       chan []model.ImageResult
 	jobs          chan string
 )
 
@@ -28,7 +29,7 @@ func main() {
 	flag.IntVar(&numOfWorkers, "workers", defaultNumOfWorkers, "number of workers")
 	flag.Parse()
 
-	fp := newFileParser()
+	fp := newFileProcessor()
 
 	partitions, err := fp.partitionInputFile(filePath, partitionSize)
 	if err != nil {
@@ -36,12 +37,9 @@ func main() {
 		return
 	}
 
-	ip := new(processor)
-
 	/*
 		// without goroutines
-
-		var irs []imageResult
+		var irs []model.ImageResult
 		for _, p := range partitions {
 			fmt.Println("processing partition file:", p)
 			urls, err := fp.readInputFile(p)
@@ -50,7 +48,7 @@ func main() {
 				return
 			}
 
-			ir, err := ip.processURLs(urls)
+			ir, err := fp.ProcessURLs(urls)
 			if err != nil {
 				fmt.Printf("error processing image urls %v", err)
 				return
@@ -61,7 +59,7 @@ func main() {
 		writeToFile(irs)
 	*/
 
-	results = make(chan []imageResult, len(partitions))
+	results = make(chan []model.ImageResult, len(partitions))
 	jobs = make(chan string, len(partitions))
 	done := make(chan bool)
 
@@ -78,7 +76,7 @@ func main() {
 	go allocateJobs(partitions)
 
 	// create workers
-	createWorkers(numOfWorkers, fp, ip)
+	createWorkers(numOfWorkers, fp)
 
 	<-done
 
@@ -88,7 +86,7 @@ func main() {
 }
 
 // writeToFile outputs the result to a file
-func writeToFile(ir []imageResult) error {
+func writeToFile(ir []model.ImageResult) error {
 	file, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -115,12 +113,7 @@ func writeResults(done chan bool) {
 
 // remove temp partition files
 func removePartitionFiles(partitions []string) {
-	for _, f := range partitions {
-		err := os.Remove(f)
-		if err != nil {
-			fmt.Printf("Error removing file %s: %v", f, err)
-		}
-	}
+	cleanUpPartitionFiles(partitions)
 }
 
 // adds a job (partition file) to the buffered jobs channel
@@ -132,11 +125,11 @@ func allocateJobs(partitions []string) {
 }
 
 // create worker pool - goroutines to process the partitions
-func createWorkers(num int, fp *fileParser, ip *processor) {
+func createWorkers(num int, fp *fileProcessor) {
 	var wg sync.WaitGroup
 	for i := 0; i < num; i++ {
 		wg.Add(1)
-		go worker(&wg, fp, ip)
+		go worker(&wg, fp)
 	}
 	wg.Wait()
 
@@ -144,7 +137,7 @@ func createWorkers(num int, fp *fileParser, ip *processor) {
 }
 
 // the worker - processes the partition (job) and puts output in results channel
-func worker(wg *sync.WaitGroup, fp *fileParser, ip *processor) {
+func worker(wg *sync.WaitGroup, fp *fileProcessor) {
 	defer wg.Done()
 
 	for job := range jobs {
@@ -154,7 +147,7 @@ func worker(wg *sync.WaitGroup, fp *fileParser, ip *processor) {
 			return
 		}
 
-		ir, err := ip.processURLs(urls)
+		ir, err := fp.ProcessURLs(urls)
 		if err != nil {
 			fmt.Printf("error processing image urls from %s: %v", job, err)
 			return
