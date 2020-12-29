@@ -23,7 +23,9 @@ pexChallenge -inputFile='input.txt' -pSize=200 -workers=3
 The CSV output is saved as `output.txt`
 
 ## Memory Usage
-The internal result of the processing is stored in type `imageResult`. It has a `Colors` field which is an array of size 3 (for the three most prevalent colors of the URL). Each element is a 3 byte/unsigned 8 bit array for the R, G, B components of the color. A total of 9 bytes each used for the result of each URL.
+The internal result of the processing is stored in type `imageResult` (model/imageResult.go). It has a `Colors` field which is an array of size 3 (for the three most prevalent colors of the URL). Each array item is a 3 byte (unsigned 8 bit int) array for the R, G, B color components, thus a total of 9 bytes each used for the result of each URL.
 
-An alternative option would be to use the values in hexadecimal format. However, this would require a total of 18 bytes for the result of each URL - 2 (bytes for each color component) X 3 (number of color components) X 3 (number of colors).
+An alternative option would be to store the values in hexadecimal string format. However, this would require a total of 18 bytes for the result of each URL - 2 (bytes for each color component in hexadecimal format) X 3 (number of color components) X 3 (number of colors).
+
+Therefore the first option uses about 50% memory in comparison to the alternative option.
 
