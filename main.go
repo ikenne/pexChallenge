@@ -10,7 +10,7 @@ import (
 
 const (
 	outputFile           = "output.txt"
-	defaultPartitionSize = 100
+	defaultPartitionSize = 200
 	defaultNumOfWorkers  = 2
 )
 
