@@ -6,6 +6,7 @@ import (
 	"os"
 	"pexChallenge/model"
 	"sync"
+	"time"
 )
 
 const (
@@ -31,6 +32,7 @@ func main() {
 
 	fp := newFileProcessor()
 
+	startTime := time.Now()
 	partitions, err := fp.partitionInputFile(filePath, partitionSize)
 	if err != nil {
 		fmt.Printf("Error partitioning input file: %v", err)
@@ -80,9 +82,10 @@ func main() {
 
 	<-done
 
+	diff := time.Now().Sub(startTime)
 	removePartitionFiles(partitions)
 
-	fmt.Println("Finished processing")
+	fmt.Printf("Finished processing. Elapsed time %v seconds", diff.Seconds())
 }
 
 // writeToFile outputs the result to a file

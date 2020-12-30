@@ -29,3 +29,13 @@ An alternative option would be to store the values in hexadecimal string format.
 
 Therefore the first option uses about 50% memory in comparison to the alternative option.
 
+## Execution times
+The following is a sample of local execution times with different configurations:
+```
+pSize=200, workers=1: Elapsed time 108.596055 seconds
+pSize=200, workers=2: Elapsed time 78.3090502 seconds
+pSize=200, workers=3: Elapsed time 63.5690846 seconds
+pSize=200, workers=4: Elapsed time 67.0927973 seconds
+pSize=200, workers=5: Elapsed time 58.622737 seconds
+```
+
