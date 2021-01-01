@@ -1,8 +1,14 @@
 This is an implementation of the issue here: [https://gist.github.com/ehmo/e736c827ca73d84581d812b3a27bb132]
 ```
-Below is a list of links leading to an image, read this list of images and find 3 most prevalent colors in the RGB scheme in hexadecimal format (#000000 - #FFFFFF) in each image, and write the result into a CSV file in a form of url,color,color,color.
+Below is a list of links leading to an image, read this list of images and find 3 most
+prevalent colors in the RGB scheme in hexadecimal format (#000000 - #FFFFFF) in 
+each image, and write the result into a CSV file in a form of url,color,color,color.
 
-Please focus on speed and resources. The solution should be able to handle input files with more than a billion URLs, using limited resources (e.g. 1 CPU, 512MB RAM). Keep in mind that there is no limit on the execution time, but make sure you are utilizing the provided resources as much as possible at any time during the program execution.
+Please focus on speed and resources. The solution should be able to handle input files
+with more than a billion URLs, using limited resources (e.g. 1 CPU, 512MB RAM).
+Keep in mind that there is no limit on the execution time, but make sure you are
+utilizing the provided resources as much as possible at any time during the program 
+execution.
 
 Answer should be posted in a git repo.
 ```
@@ -11,7 +17,7 @@ Answer should be posted in a git repo.
 
 The URLs in the input file are batched to allow manageable processing with limited resources. The batch size - number of urls in a batch - should be configurable. Each batch is saved in a temporary partition file as `<input file name>_p{n}.txt`, where `n` is 1,2,3, ... N, e.g., `input_p1.txt`. The partition files are removed after processing. The size of the batch is passed as an argument to the program: e.g.,`--pSize=200` (default 100).
 
-Concurrent processing of the batches is also supported to improve speed. The concurrency is achieved with worker goroutines that process the partition files. The number of workers is configurable with a program parameter: e.g., `--workers=3` (default 2).
+Concurrent processing of the batches is also supported to improve speed. The concurrency is achieved by processing the partition files in worker goroutines and using buffered channels. The number of workers is configurable with a program parameter: e.g., `--workers=3` (default 2). Buffered channels are used for queuing and coordinating processing and writing the results between the goroutines.
 
 The input file is specified with parameter `inputFile` (default  `input.txt`). 
 
